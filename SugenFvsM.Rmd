@@ -11,7 +11,7 @@ date: "2024-02-13"
 knitr::opts_knit$set(root.dir = "C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE")
 ```
 
-# Load the Required Library
+# A- LOAD REQUIRED LIBRARY
 
 ```{r}
 
@@ -22,13 +22,20 @@ library(gridExtra)
 
 ```
 
-# LIST ALL H5 FILTERED_FEATURE_BC_MATRIX
+## 1- Load Functions
+
+```{r}
+ source("C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/Sedat_Functions/Functions_SKR.R")
+
+```
+
+## 2- List All H5 Filtered_Feature_Bc_Matrix
 
 ```{r, eval=FALSE}
 Sugen_Filtered <- list.files(path = "/Sugen_Ec_Filtered", pattern = "//.h5$", full.names = TRUE)
 ```
 
-# LOAD EACH of THE Filtered_Bc_Matrixes
+# B- LOAD THE FILTERED_BC_MATRIXES
 
 ```{r, eval=FALSE}
 
@@ -44,6 +51,8 @@ SUECM1_28_7 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "SUECM1_28_filtere
 SUECM2_28_8 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "SUECM2_28_filtered_feature_bc_matrix.h5", sep = "/"))
 ```
 
+## 1- Make a Seurat Object for Each
+
 ```{r, eval=FALSE}
 WTECF1_21_1 <- CreateSeuratObject(WTECF1_21_1, min.cells=3, min.features = 200)
 WTECF2_21_2 <- CreateSeuratObject(WTECF2_21_2, min.cells=3, min.features = 200)
@@ -55,7 +64,7 @@ SUECM1_28_7 <- CreateSeuratObject(SUECM1_28_7, min.cells=3, min.features = 200)
 SUECM2_28_8 <- CreateSeuratObject(SUECM2_28_8, min.cells=3, min.features = 200)
 ```
 
-# MAKE A LIST FROM WHOLE SEURAT OBJECTS
+## 2- Make *A Sugrat_List* from all seurat objects
 
 ```{r, eval=FALSE}
 
@@ -72,7 +81,7 @@ sugrat_list <- list(
 
 ```
 
-# SAVE ALL 8 OBJECTS
+## 3- Save the Sugrat_List
 
 ```{r, eval=FALSE}
 
@@ -81,7 +90,8 @@ saveRDS(sugrat_list, "sugrat_list.Rds")
 
 ```
 
-# LOAD SUGRATLIST
+ 
+## 4- Load the Sugrat_List
 
 ```{r}
 
@@ -90,7 +100,7 @@ sugrat_list <- readRDS("sugrat_list.Rds")
 
 ```
 
-# LOADING SEURATS FROM SEURAT LIST
+## 5- S_obj/Sugrat_List Separation
 
 ```{r}
 
@@ -107,31 +117,7 @@ rm(sugrat_list)
 
 ```
 
-# FIRST SET OF GROUPS
-
-```{r}
-
-A_WT_F <- WTECF1_21_1
-B_SU_F <- SUECF1_22_3
-C_WT_M <- WTECM1_27_5
-D_SU_M <- SUECM1_28_7
-
-rm(WTECF1_21_1, SUECF1_22_3, WTECM1_27_5, SUECM1_28_7)
-```
-
-# SECOND SET OF GROUPS
-
-```{r}
-
-A_WT_F_2 <- WTECF2_21_2
-B_SU_F_2 <- SUECF2_22_4
-C_WT_M_2 <- WTECM2_27_6
-D_SU_M_2 <- SUECM2_28_8
-
-rm(WTECF2_21_2, SUECF2_22_4, WTECM2_27_6, SUECM2_28_8)
-```
-
-# MAKING A SEURAT LIST FROM ALL THOSE SEURATS
+# C- MAKING A Seurat_List
 
 ```{r}
 
@@ -148,27 +134,32 @@ seurat_list <- list(
 
 ```
 
-# Check if mitochondrial gene s are there
+## 1- First_batch: Assigning Sugrat_List to Seurat_List
 
 ```{r}
-# Check if RNA_Seq assay is available
 
- mt_genes <- rownames(A_WT_F)[grep("Mt-", rownames(A_WT_F))]
+A_WT_F <- WTECF1_21_1
+B_SU_F <- SUECF1_22_3
+C_WT_M <- WTECM1_27_5
+D_SU_M <- SUECM1_28_7
 
-print(mt_genes)
+rm(WTECF1_21_1, SUECF1_22_3, WTECM1_27_5, SUECM1_28_7)
 
 ```
 
-# Make Percentage of MT Function
+## 2- Second_batch: Assigning Sugrat_List to Seurat_List
 
 ```{r}
-seurat_list <- lapply(seurat_list, function(seurat_obj) {
-  seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "Mt-")
-  return(seurat_obj)
-})
+
+A_WT_F_2 <- WTECF2_21_2
+B_SU_F_2 <- SUECF2_22_4
+C_WT_M_2 <- WTECM2_27_6
+D_SU_M_2 <- SUECM2_28_8
+
+rm(WTECF2_21_2, SUECF2_22_4, WTECM2_27_6, SUECM2_28_8)
 ```
 
-# LOADING FUNCTIONS BACK TO SEPARATE SEURATS AFTER LAPPLY
+## 3- S_obj/Seurat_List Separation
 
 ```{r}
 
@@ -183,22 +174,7 @@ seurat_list <- lapply(seurat_list, function(seurat_obj) {
   
 ```
 
-## Separate each seurat objects from seurat list
-
-```{r, eval=FALSE}
-
-  A_WT_F <- sugen_list1[["A_WT_F"]]
-  B_SU_F <- sugen_list1[["B_SU_F"]]
-  C_WT_M <- sugen_list1[["C_WT_M"]]
-  D_SU_M <- sugen_list1[["D_SU_M"]]
-  A_WT_F_2 <- sugen_list2[["A_WT_F_2"]]
-  B_SU_F_2 <- sugen_list2[["B_SU_F_2"]]
-  C_WT_M_2 <- sugen_list2[["C_WT_M_2"]]
-  D_SU_M_2 <- sugen_list2[["D_SU_M_2"]]
-  
-```
-
-## Make 2 separate seurat list
+## 4- Make Sugen_List 1 $ 2
 
 ```{r, eval=FALSE}
 
@@ -217,8 +193,47 @@ sugen_list2 <- list(
   D_SU_M_2 = D_SU_M_2
 )
 ```
+## 5- S_obj/ Sugen_List 1 & 2 Separation
 
-# Plot one by one before cleaning -nCOUNTRNA
+```{r, eval=FALSE}
+
+  A_WT_F <- sugen_list1[["A_WT_F"]]
+  B_SU_F <- sugen_list1[["B_SU_F"]]
+  C_WT_M <- sugen_list1[["C_WT_M"]]
+  D_SU_M <- sugen_list1[["D_SU_M"]]
+  A_WT_F_2 <- sugen_list2[["A_WT_F_2"]]
+  B_SU_F_2 <- sugen_list2[["B_SU_F_2"]]
+  C_WT_M_2 <- sugen_list2[["C_WT_M_2"]]
+  D_SU_M_2 <- sugen_list2[["D_SU_M_2"]]
+  
+```
+
+
+# D- MITOCHONDRIAL CLEANING STARTING...
+
+## 1- Check the existence of MT genes 
+
+```{r}
+# Check if RNA_Seq assay is available
+
+ mt_genes <- rownames(A_WT_F)[grep("Mt-", rownames(A_WT_F))]
+
+print(mt_genes)
+
+```
+
+## 2- Generate "MT percentage" Column with perncet_mt function
+
+```{r}
+
+sugrat_list <- lapply(sugrat_list, percent_mt)
+
+#percent_mt is a function!
+```
+
+## 3- MT Plots
+
+### a- nCount_RNA Violin Plot
 
 ```{r, fig.height=5, fig.width=10}
 
@@ -240,7 +255,7 @@ plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
 print(plot_row)
 ```
 
-# NFEATURE
+### b- nFeature_RNA Violin Plot
 
 ```{r, fig.height=5, fig.width=10}
 
@@ -262,7 +277,8 @@ plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
 print(plot_row)
 ```
 
-# PERCENT.MT
+### c- percent.mt Violin Plot
+
 
 ```{r, fig.height=5, fig.width=10}
 
@@ -284,7 +300,7 @@ plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
 print(plot_row)
 ```
 
-# nFeature vs NCOunt
+### d- nFeature vs nCount
 
 ```{r, fig.height=5, fig.width=15}
 
@@ -307,7 +323,7 @@ plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
 print(plot_row)
 ```
 
-# nCount vs MTpercent
+### e- nCount vs MT_percentage
 
 ```{r, fig.height=5, fig.width=15}
 
@@ -330,7 +346,7 @@ plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
 print(plot_row)
 ```
 
-# nfeatures vs MTpercent
+### f - nFeatures vs MT_percentage
 
 ```{r, fig.height=5, fig.width=15}
 
@@ -352,4 +368,10 @@ plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
 
 print(plot_row)
 ```
+
+
+## 4- Filtering
+
+
+
 
