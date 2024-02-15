@@ -1,0 +1,17 @@
+1- Go to your local github file diretory in your device
+
+> cd "..."
+
+2- type > git add .
+	> git commit -m "Summarize ur changes"
+
+{
+(OPTIONAL)
+This is a kinda reverse update.
+# 	> git fetch origin
+	> git merge main (#your branch)
+}
+
+3- Push ur changes to GitHub
+
+	>git push origin main #(your branch name at the end)
