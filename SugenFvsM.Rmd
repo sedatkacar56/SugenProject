@@ -1,0 +1,355 @@
+---
+title: "SugenFvsM"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+date: "2024-02-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = "C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE")
+```
+
+# Load the Required Library
+
+```{r}
+
+library(Seurat)
+library(ggplot2)
+library(cowplot)
+library(gridExtra)
+
+```
+
+# LIST ALL H5 FILTERED_FEATURE_BC_MATRIX
+
+```{r, eval=FALSE}
+Sugen_Filtered <- list.files(path = "/Sugen_Ec_Filtered", pattern = "//.h5$", full.names = TRUE)
+```
+
+# LOAD EACH of THE Filtered_Bc_Matrixes
+
+```{r, eval=FALSE}
+
+paste(getwd())
+
+WTECF1_21_1 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "WTECF1_21_filtered_feature_bc_matrix.h5", sep = "/"))
+WTECF2_21_2 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "WTECF2_21_filtered_feature_bc_matrix.h5", sep = "/"))
+SUECF1_22_3 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "SUECF1_22_filtered_feature_bc_matrix.h5", sep = "/"))
+SUECF2_22_4 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "SUECF2_22_filtered_feature_bc_matrix.h5", sep = "/"))
+WTECM1_27_5 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "WTECM1_27_filtered_feature_bc_matrix.h5", sep = "/"))
+WTECM2_27_6 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "WTECM2_27_filtered_feature_bc_matrix.h5", sep = "/"))
+SUECM1_28_7 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "SUECM1_28_filtered_feature_bc_matrix.h5", sep = "/"))
+SUECM2_28_8 <- Read10X_h5(paste(getwd(), "Sugen_Ec_Filtered", "SUECM2_28_filtered_feature_bc_matrix.h5", sep = "/"))
+```
+
+```{r, eval=FALSE}
+WTECF1_21_1 <- CreateSeuratObject(WTECF1_21_1, min.cells=3, min.features = 200)
+WTECF2_21_2 <- CreateSeuratObject(WTECF2_21_2, min.cells=3, min.features = 200)
+SUECF1_22_3 <- CreateSeuratObject(SUECF1_22_3, min.cells=3, min.features = 200)
+SUECF2_22_4 <- CreateSeuratObject(SUECF2_22_4, min.cells=3, min.features = 200)
+WTECM1_27_5 <- CreateSeuratObject(WTECM1_27_5, min.cells=3, min.features = 200)
+WTECM2_27_6 <- CreateSeuratObject(WTECM2_27_6, min.cells=3, min.features = 200)
+SUECM1_28_7 <- CreateSeuratObject(SUECM1_28_7, min.cells=3, min.features = 200)
+SUECM2_28_8 <- CreateSeuratObject(SUECM2_28_8, min.cells=3, min.features = 200)
+```
+
+# MAKE A LIST FROM WHOLE SEURAT OBJECTS
+
+```{r, eval=FALSE}
+
+sugrat_list <- list(
+  WTECF1_21_1 = WTECF1_21_1,
+  WTECF2_21_2 = WTECF2_21_2,
+  SUECF1_22_3 = SUECF1_22_3,
+  SUECF2_22_4 = SUECF2_22_4,
+  WTECM1_27_5 = WTECM1_27_5,
+  WTECM2_27_6 = WTECM2_27_6,
+  SUECM1_28_7 = SUECM1_28_7,
+  SUECM2_28_8 = SUECM2_28_8
+)
+
+```
+
+# SAVE ALL 8 OBJECTS
+
+```{r, eval=FALSE}
+
+saveRDS(sugrat_list, "sugrat_list.Rds")
+
+
+```
+
+# LOAD SUGRATLIST
+
+```{r}
+
+sugrat_list <- readRDS("sugrat_list.Rds")
+
+
+```
+
+# LOADING SEURATS FROM SEURAT LIST
+
+```{r}
+
+  WTECF1_21_1 <- sugrat_list[["WTECF1_21_1"]]
+  WTECF2_21_2 <- sugrat_list[["WTECF2_21_2"]]
+  SUECF1_22_3 <- sugrat_list[["SUECF1_22_3"]]
+  SUECF2_22_4 <- sugrat_list[["SUECF2_22_4"]]
+  WTECM1_27_5 <- sugrat_list[["WTECM1_27_5"]]
+  WTECM2_27_6 <- sugrat_list[["WTECM2_27_6"]]
+  SUECM1_28_7 <- sugrat_list[["SUECM1_28_7"]]
+  SUECM2_28_8 <- sugrat_list[["SUECM2_28_8"]]
+
+rm(sugrat_list)
+
+```
+
+# FIRST SET OF GROUPS
+
+```{r}
+
+A_WT_F <- WTECF1_21_1
+B_SU_F <- SUECF1_22_3
+C_WT_M <- WTECM1_27_5
+D_SU_M <- SUECM1_28_7
+
+rm(WTECF1_21_1, SUECF1_22_3, WTECM1_27_5, SUECM1_28_7)
+```
+
+# SECOND SET OF GROUPS
+
+```{r}
+
+A_WT_F_2 <- WTECF2_21_2
+B_SU_F_2 <- SUECF2_22_4
+C_WT_M_2 <- WTECM2_27_6
+D_SU_M_2 <- SUECM2_28_8
+
+rm(WTECF2_21_2, SUECF2_22_4, WTECM2_27_6, SUECM2_28_8)
+```
+
+# MAKING A SEURAT LIST FROM ALL THOSE SEURATS
+
+```{r}
+
+seurat_list <- list(
+  A_WT_F = A_WT_F,
+  B_SU_F = B_SU_F,
+  C_WT_M = C_WT_M,
+  D_SU_M = D_SU_M,
+  A_WT_F_2 = A_WT_F_2,
+  B_SU_F_2 = B_SU_F_2,
+  C_WT_M_2 = C_WT_M_2,
+  D_SU_M_2 = D_SU_M_2
+)
+
+```
+
+# Check if mitochondrial gene s are there
+
+```{r}
+# Check if RNA_Seq assay is available
+
+ mt_genes <- rownames(A_WT_F)[grep("Mt-", rownames(A_WT_F))]
+
+print(mt_genes)
+
+```
+
+# Make Percentage of MT Function
+
+```{r}
+seurat_list <- lapply(seurat_list, function(seurat_obj) {
+  seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "Mt-")
+  return(seurat_obj)
+})
+```
+
+# LOADING FUNCTIONS BACK TO SEPARATE SEURATS AFTER LAPPLY
+
+```{r}
+
+  A_WT_F <- seurat_list[["A_WT_F"]]
+  B_SU_F <- seurat_list[["B_SU_F"]]
+  C_WT_M <- seurat_list[["C_WT_M"]]
+  D_SU_M <- seurat_list[["D_SU_M"]]
+  A_WT_F_2 <- seurat_list[["A_WT_F_2"]]
+  B_SU_F_2 <- seurat_list[["B_SU_F_2"]]
+  C_WT_M_2 <- seurat_list[["C_WT_M_2"]]
+  D_SU_M_2 <- seurat_list[["D_SU_M_2"]]
+  
+```
+
+## Separate each seurat objects from seurat list
+
+```{r, eval=FALSE}
+
+  A_WT_F <- sugen_list1[["A_WT_F"]]
+  B_SU_F <- sugen_list1[["B_SU_F"]]
+  C_WT_M <- sugen_list1[["C_WT_M"]]
+  D_SU_M <- sugen_list1[["D_SU_M"]]
+  A_WT_F_2 <- sugen_list2[["A_WT_F_2"]]
+  B_SU_F_2 <- sugen_list2[["B_SU_F_2"]]
+  C_WT_M_2 <- sugen_list2[["C_WT_M_2"]]
+  D_SU_M_2 <- sugen_list2[["D_SU_M_2"]]
+  
+```
+
+## Make 2 separate seurat list
+
+```{r, eval=FALSE}
+
+sugen_list1 <- list(
+  A_WT_F = A_WT_F,
+  B_SU_F = B_SU_F,
+  C_WT_M = C_WT_M,
+  D_SU_M = D_SU_M
+  )
+
+
+sugen_list2 <- list(
+  A_WT_F_2 = A_WT_F_2,
+  B_SU_F_2 = B_SU_F_2,
+  C_WT_M_2 = C_WT_M_2,
+  D_SU_M_2 = D_SU_M_2
+)
+```
+
+# Plot one by one before cleaning -nCOUNTRNA
+
+```{r, fig.height=5, fig.width=10}
+
+library(gridExtra)
+
+p1 <- VlnPlot(A_WT_F, features = "nCount_RNA") + geom_hline(yintercept = c(2000, 25000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none" ) + ggtitle("WT_Female")
+p2 <- VlnPlot(B_SU_F, features = "nCount_RNA") + geom_hline(yintercept = c(2000, 25000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Female") 
+
+p3 <- VlnPlot(C_WT_M, features = "nCount_RNA") + geom_hline(yintercept = c(2000, 25000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Male") 
+
+p4 <- VlnPlot(D_SU_M, features = "nCount_RNA") + geom_hline(yintercept = c(2000, 25000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+# NFEATURE
+
+```{r, fig.height=5, fig.width=10}
+
+library(gridExtra)
+
+p1 <- VlnPlot(A_WT_F, features = "nFeature_RNA") + geom_hline(yintercept = c(6000, 200), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Female")
+p2 <- VlnPlot(B_SU_F, features = "nFeature_RNA") + geom_hline(yintercept = c(6000, 200), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Female") 
+
+p3 <- VlnPlot(C_WT_M, features = "nFeature_RNA") + geom_hline(yintercept = c(6000, 200), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Male") 
+
+p4 <- VlnPlot(D_SU_M, features = "nFeature_RNA") + geom_hline(yintercept = c(6000, 200), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+# PERCENT.MT
+
+```{r, fig.height=5, fig.width=10}
+
+library(gridExtra)
+
+p1 <- VlnPlot(A_WT_F, features = "percent.mt") + geom_hline(yintercept = 15, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Female")
+p2 <- VlnPlot(B_SU_F, features = "percent.mt") + geom_hline(yintercept = 15, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Female") 
+
+p3 <- VlnPlot(C_WT_M, features = "percent.mt") + geom_hline(yintercept = 15, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Male") 
+
+p4 <- VlnPlot(D_SU_M, features = "percent.mt") + geom_hline(yintercept = 15, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+# nFeature vs NCOunt
+
+```{r, fig.height=5, fig.width=15}
+
+library(gridExtra)
+
+p1 <- FeatureScatter(A_WT_F, feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + geom_hline(yintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Female")
+
+p2 <- FeatureScatter(B_SU_F,  feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + geom_hline(yintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Female") 
+
+p3 <- FeatureScatter(C_WT_M,  feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + geom_hline(yintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Male") 
+
+p4 <- FeatureScatter(D_SU_M,  feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + geom_hline(yintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+# nCount vs MTpercent
+
+```{r, fig.height=5, fig.width=15}
+
+library(gridExtra)
+
+p1 <- FeatureScatter(A_WT_F, feature1 = "nCount_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Female")
+
+p2 <- FeatureScatter(B_SU_F,  feature1 = "nCount_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Female") 
+
+p3 <- FeatureScatter(C_WT_M,  feature1 = "nCount_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Male") 
+
+p4 <- FeatureScatter(D_SU_M,  feature1 = "nCount_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+# nfeatures vs MTpercent
+
+```{r, fig.height=5, fig.width=15}
+
+library(gridExtra)
+
+p1 <- FeatureScatter(A_WT_F, feature1 = "nFeature_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Female")
+
+p2 <- FeatureScatter(B_SU_F,  feature1 = "nFeature_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Female") 
+
+p3 <- FeatureScatter(C_WT_M,  feature1 = "nFeature_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WT_Male") 
+
+p4 <- FeatureScatter(D_SU_M,  feature1 = "nFeature_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SU_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
