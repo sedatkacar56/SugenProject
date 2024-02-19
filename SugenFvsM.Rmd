@@ -29,7 +29,20 @@ library(gridExtra)
 
 ```
 
-## 2- List All H5 Filtered_Feature_Bc_Matrix
+## 2-Store Functions
+
+```{r}
+
+cat('filter_func <- function(seurat_obj) {
+  seurat_obj <- subset(seurat_obj, subset = nFeature_RNA > 200 & nFeature_RNA < 6000 & percent.mt < 30 & nCount_RNA < 30000 & nCount_RNA > 2000)
+return(seurat_obj)
+}', file = "C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/Sedat_Functions/Functions_SKR.R")
+}
+
+```
+
+
+## 3- List All H5 Filtered_Feature_Bc_Matrix
 
 ```{r, eval=FALSE}
 Sugen_Filtered <- list.files(path = "/Sugen_Ec_Filtered", pattern = "//.h5$", full.names = TRUE)
@@ -174,7 +187,15 @@ rm(WTECF2_21_2, SUECF2_22_4, WTECM2_27_6, SUECM2_28_8)
   
 ```
 
-## 4- Make Sugen_List 1 $ 2
+## 4- Make Sugen_List
+
+allbut <- function(remain_obj) {
+rm(list = setdiff(ls(), remain_obj))
+}
+
+
+rm(list = setdiff(ls(), sugen_list1))
+### a- Make Sugen_List1
 
 ```{r, eval=FALSE}
 
@@ -184,7 +205,11 @@ sugen_list1 <- list(
   C_WT_M = C_WT_M,
   D_SU_M = D_SU_M
   )
+```
 
+### b- Make Sugen_List2
+
+```{r}
 
 sugen_list2 <- list(
   A_WT_F_2 = A_WT_F_2,
@@ -193,20 +218,46 @@ sugen_list2 <- list(
   D_SU_M_2 = D_SU_M_2
 )
 ```
-## 5- S_obj/ Sugen_List 1 & 2 Separation
+## 5- Separate Sugen_Lists 1 & 2
 
+### a- Sugen_list 1 Separation
 ```{r, eval=FALSE}
 
   A_WT_F <- sugen_list1[["A_WT_F"]]
   B_SU_F <- sugen_list1[["B_SU_F"]]
   C_WT_M <- sugen_list1[["C_WT_M"]]
   D_SU_M <- sugen_list1[["D_SU_M"]]
+  
+```
+  
+### a- Sugen_list 2 Separation
+
+  
+```{r}
+  
   A_WT_F_2 <- sugen_list2[["A_WT_F_2"]]
   B_SU_F_2 <- sugen_list2[["B_SU_F_2"]]
   C_WT_M_2 <- sugen_list2[["C_WT_M_2"]]
   D_SU_M_2 <- sugen_list2[["D_SU_M_2"]]
   
 ```
+
+## 6- Save Sugen_list 1
+
+```{r}
+
+saveRDS(sugen_list1, "C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE/sugen_list1_2_15")
+
+```
+
+## 7- Load Sugen_list 1
+
+```{r}
+
+sugen_list1 <- readRDS("C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE/sugen_list1_2_15")
+
+```
+
 
 
 # D- MITOCHONDRIAL CLEANING STARTING...
@@ -222,7 +273,7 @@ print(mt_genes)
 
 ```
 
-## 2- Generate "MT percentage" Column with perncet_mt function
+## 2- Func.: Generate "MT percentage" Column with perncet_mt function
 
 ```{r}
 
@@ -372,6 +423,39 @@ print(plot_row)
 
 ## 4- Filtering
 
+### a- Make a Filtering Function
+
+```{r}
+
+name <- filter_func <- function(seurat_obj) {
+  seurat_obj <- subset(seurat_obj, subset = nFeature_RNA > 200 & nFeature_RNA < 6000 & percent.mt < 30 & nCount_RNA < 30000 & nCount_RNA > 2000)
+return(seurat_obj)
+}
+
+```
+
+### b- Utilize filter_func
+
+```{r}
+
+sugen_list1 <- lapply(sugen_list1, filter_func)
+
+```
 
 
+# E- FIND ANCHORS
+
+```{r}
+
+FindIntegrationAnchors(object.list = sugen_list1, dims = 1:50)
+
+
+```
+
+# READ ANCHORED OBJECT
+
+```{r}
+anchored <- readRDS("C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE/Anchored_Sugen_list1_2_15_2024.Rds")
+
+```
 
