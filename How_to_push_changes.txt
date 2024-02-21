@@ -1,6 +1,4 @@
-# HOW TO PUSH CHANGES TO GITHUB
-
-1- Go to your local github file diretory in your device
+git1- Go to your local github file diretory in your device
 
 > cd "..."
 
@@ -17,3 +15,7 @@ This is a kinda reverse update.
 3- Push ur changes to GitHub
 
 	>git push origin main #(your branch name at the end)
+
+
+If it doesnot work use :>git pull origin main
+

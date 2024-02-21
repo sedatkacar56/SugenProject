@@ -443,6 +443,30 @@ sugen_list1 <- lapply(sugen_list1, filter_func)
 ```
 
 
+#E- NORMALIZATION (CLASSIC)
+
+## 1- Establish Normalization Function "Norm_func"
+```{r}
+Norm_func <- function (seurat_obj) {
+     seurat_obj <- NormalizeData(seurat_obj, normalization.method = "LogNormalize", 
+         scale.factor = 10000)
+     return(seurat_obj)
+ }
+
+```
+
+#F- FIND VARIABLE FEATURES
+
+## 1- Establish Find-Variable Function "Variable_func"
+
+```{r}
+
+Variable_func <- function(seurat_obj) {
+  seurat_obj <- FindVariableFeatures(seurat_obj, selection.method = "vst", nfeatures = 2000, verbose = FALSE)
+  return(seurat_obj)
+}
+```
+
 # E- FIND ANCHORS
 
 ```{r}

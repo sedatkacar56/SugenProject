@@ -1,0 +1,578 @@
+---
+title: "SugenFvsM_Fastq"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+date: "2024-02-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = "C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE")
+```
+
+# A- LOAD REQUIRED LIBRARY
+
+```{r}
+
+library(Seurat)
+library(ggplot2)
+library(cowplot)
+library(gridExtra)
+library(SingleR)
+library(celldex)
+library(SummarizedExperiment)
+library(Matrix)
+library(SimBu)
+
+
+```
+
+## 1- Load Functions
+
+```{r}
+ source("C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/Sedat_Functions/Functions_SKR.R")
+
+```
+
+# B- LOAD THE COMBINED FILTERED_BC_MATRIXES
+
+```{r, eval=FALSE}
+
+paste(getwd())
+
+WTEC_Female <- Read10X_h5(paste(getwd(), "pairwise_conversion", "WTECF1and2_filtered_feature_bc_matrix.h5", sep = "/"))
+WTEC_Male <- Read10X_h5(paste(getwd(), "pairwise_conversion", "WTECM1and2_filtered_feature_bc_matrix.h5", sep = "/"))
+SUEC_Female <- Read10X_h5(paste(getwd(), "pairwise_conversion", "SUECF1and2_filtered_feature_bc_matrix.h5", sep = "/"))
+SUEC_Male <- Read10X_h5(paste(getwd(), "pairwise_conversion", "SUECM1and2_filtered_feature_bc_matrix.h5", sep = "/"))
+```
+
+## 1- Make a Seurat Object for Each
+
+```{r, eval=FALSE}
+
+WTEC_Female <- CreateSeuratObject(WTEC_Female, min.cells=3, min.features = 200)
+WTEC_Male <- CreateSeuratObject(WTEC_Male, min.cells=3, min.features = 200)
+SUEC_Female <- CreateSeuratObject(SUEC_Female, min.cells=3, min.features = 200)
+SUEC_Male <- CreateSeuratObject(SUEC_Male, min.cells=3, min.features = 200)
+```
+
+# C- MITOCHONDRIAL CLEANING STARTING...
+
+## 1- Check the existence of MT genes (#)
+
+```{r}
+# Check if RNA_Seq assay is available
+
+ mt_genes <- rownames(SUEC_Female)[grep("Mt-", rownames(SUEC_Female))]
+
+print(mt_genes)
+
+```
+## 2- Establishing "percent_mt" function (#)
+
+```{r}
+percent_mt <- function(seurat_obj){
+  seurat_obj[["percent.mt"]] <- PercentageFeatureSet(seurat_obj, pattern = "Mt-")
+  return(seurat_obj)
+}
+```
+
+
+## 2- Utilize percent_mt function
+
+```{r}
+SUEC_Male <- percent_mt(SUEC_Male)
+SUEC_Female <- percent_mt(SUEC_Female)
+WTEC_Female <- percent_mt(WTEC_Female)
+WTEC_Male <- percent_mt(WTEC_Male)
+
+#SUEC_Female[["percent.mt"]] <- PercentageFeatureSet(SUEC_Female, pattern = "Mt-")
+
+```
+
+## 3- MT Plots (#)
+
+### a- nCount_RNA Violin Plot (#)
+
+```{r, fig.height=5, fig.width=10}
+
+p1 <- VlnPlot(SUEC_Male, features = "nCount_RNA") + geom_hline(yintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none" ) + ggtitle("SUEC_Male")
+p2 <- VlnPlot(SUEC_Female, features = "nCount_RNA") + geom_hline(yintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Female") 
+
+p3 <- VlnPlot(WTEC_Female, features = "nCount_RNA") + geom_hline(yintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Female") 
+
+p4 <- VlnPlot(WTEC_Male, features = "nCount_RNA") + geom_hline(yintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+### b- nFeature_RNA Violin Plot (#)
+
+```{r, fig.height=5, fig.width=10}
+
+library(gridExtra)
+
+p1 <- VlnPlot(SUEC_Male, features = "nFeature_RNA") + geom_hline(yintercept = c(6000, 200), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Male")
+p2 <- VlnPlot(SUEC_Female, features = "nFeature_RNA") + geom_hline(yintercept = c(6000, 200), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Female") 
+
+p3 <- VlnPlot(WTEC_Female, features = "nFeature_RNA") + geom_hline(yintercept = c(6000, 200), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Female") 
+
+p4 <- VlnPlot(WTEC_Male, features = "nFeature_RNA") + geom_hline(yintercept = c(6000, 200), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+### c- percent.mt Violin Plot (#)
+
+
+```{r, fig.height=5, fig.width=10}
+
+library(gridExtra)
+
+p1 <- VlnPlot(SUEC_Male, features = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Male")
+p2 <- VlnPlot(SUEC_Female, features = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Female") 
+
+p3 <- VlnPlot(WTEC_Female, features = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Female") 
+
+p4 <- VlnPlot(WTEC_Male, features = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+### d- nFeature vs nCount (#)
+
+```{r, fig.height=5, fig.width=15}
+
+library(gridExtra)
+
+p1 <- FeatureScatter(SUEC_Male, feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + geom_hline(yintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Male")
+
+p2 <- FeatureScatter(SUEC_Female,  feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + geom_hline(yintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Female") 
+
+p3 <- FeatureScatter(WTEC_Female,  feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + geom_hline(yintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Female") 
+
+p4 <- FeatureScatter(WTEC_Male,  feature1 = "nCount_RNA", feature2 = "nFeature_RNA") + geom_hline(yintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+### e- nCount vs MT_percentage (#)
+
+```{r, fig.height=5, fig.width=15}
+
+library(gridExtra)
+
+p1 <- FeatureScatter(SUEC_Male, feature1 = "nCount_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Male")
+
+p2 <- FeatureScatter(SUEC_Female,  feature1 = "nCount_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Female") 
+
+p3 <- FeatureScatter(WTEC_Female,  feature1 = "nCount_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Female") 
+
+p4 <- FeatureScatter(WTEC_Male,  feature1 = "nCount_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = c(2000, 30000), linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+### f - nFeatures vs MT_percentage (#)
+
+```{r, fig.height=5, fig.width=15}
+
+library(gridExtra)
+
+p1 <- FeatureScatter(SUEC_Male, feature1 = "nFeature_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Male")
+
+p2 <- FeatureScatter(SUEC_Female,  feature1 = "nFeature_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("SUEC_Female") 
+
+p3 <- FeatureScatter(WTEC_Female,  feature1 = "nFeature_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Female") 
+
+p4 <- FeatureScatter(WTEC_Male,  feature1 = "nFeature_RNA", feature2 = "percent.mt") + geom_hline(yintercept = 30, linetype = "dashed", color = "red", size = 1.5) + geom_vline(xintercept = 6000, linetype = "dashed", color = "red", size = 1.5) + theme(legend.position = "none") + ggtitle("WTEC_Male")  
+
+
+#grid.arrange(p1, p2, p3, p4, ncol = 2)
+#p <- p1 + p2 + p3 + p4
+plot_row <- plot_grid(p1, p2, p3, p4, ncol = 4, align = "h")
+
+
+print(plot_row)
+```
+
+
+## 4- Filtering
+
+### a- Make a Filtering Function (#)
+
+```{r}
+
+filter_func <- function(seurat_obj) {
+seurat_obj <- subset(seurat_obj, subset = nFeature_RNA > 200 & nFeature_RNA < 6000 & percent.mt < 30 & nCount_RNA < 30000 & nCount_RNA > 2000)
+return(seurat_obj)
+}
+
+```
+
+### b- Utilize filter_func
+
+```{r}
+
+SUEC_Male <- filter_func(SUEC_Male)
+SUEC_Female <- filter_func(SUEC_Female)
+WTEC_Female <- filter_func(WTEC_Female)
+WTEC_Male <- filter_func(WTEC_Male)
+
+```
+
+#D- NORMALIZATION (CLASSIC)
+
+## 1- Establish Normalization Function "Norm_func" (#)
+```{r}
+Norm_func <- function (seurat_obj) {
+     seurat_obj <- NormalizeData(seurat_obj, normalization.method = "LogNormalize", 
+         scale.factor = 10000)
+     return(seurat_obj)
+ }
+
+```
+
+## 2- Utilize Norm_func
+
+```{r}
+
+SUEC_Male <- Norm_func(SUEC_Male)
+SUEC_Female <- Norm_func(SUEC_Female)
+WTEC_Female <- Norm_func(WTEC_Female)
+WTEC_Male <- Norm_func(WTEC_Male)
+
+
+```
+
+
+#E- FIND VARIABLE FEATURES
+
+## 1- Establish Find-Variable Function "Variable_func" (#)
+
+```{r}
+
+Variable_func <- function(seurat_obj) {
+  seurat_obj <- FindVariableFeatures(seurat_obj, selection.method = "vst", nfeatures = 2000, verbose = FALSE)
+  return(seurat_obj)
+}
+```
+
+### 2- Utilize Variable_func
+
+```{r}
+
+SUEC_Male <- Variable_func(SUEC_Male)
+SUEC_Female <- Variable_func(SUEC_Female)
+WTEC_Female <- Variable_func(WTEC_Female)
+WTEC_Male <- Variable_func(WTEC_Male)
+
+
+```
+
+# F- FINDIN' ANCHORS/INTEGRATION
+
+## 1- Find-Integration-Anchors
+```{r}
+
+anchored_sample <-  FindIntegrationAnchors(object.list = c(WTEC_Male, WTEC_Female, SUEC_Male, SUEC_Female), dims = 1:50)
+
+
+```
+
+## 2- Integrate Data
+
+```{r}
+
+anchored_sample <- IntegrateData(anchorset = anchored_sample, dims = 1:50)
+
+
+```
+
+
+# G- VISUALIZATION AND CLUSTERING
+
+```{r}
+anchored_sample <- ScaleData(anchored_sample, verbose = FALSE)
+anchored_sample <- RunPCA(anchored_sample, npcs = 50, verbose = FALSE)
+anchored_sample <- RunUMAP(anchored_sample, reduction = "pca", dims = 1:50)
+
+```
+## 1- Groupwise Visualization by Dimplot -COOL!!!
+
+```{r, fig.height=15}
+
+p <- DimPlot(Bis_anchor, reduction = "umap", group.by = "SingR_labels", label = TRUE, label.size = 7,   cells.highlight = c("Aeroytes I"), cols.highlight = "red", sizes.highlight = 20) #+ theme(legend.position = "none")
+print(p)
+
+print(table(Bis_anchor$SingR_labels))
+```
+
+### a- Highlighting certain cell groups
+
+```{r, fig.height=9}
+Bis_cells <- which(Bis_anchor$SingR_labels == "Aeroytes I")
+all_cells_colors <- rep("black", ncol(Bis_anchor))
+all_cells_colors[Bis_cells] <- "blue"
+
+p <- DimPlot(
+  Bis_anchor,
+  reduction = "umap",
+  label = TRUE,
+  cells.highlight = Bis_cells,
+  cols.highlight = "pink",
+  sizes.highlight = 0.5,
+  cols = all_cells_colors
+) + theme(legend.position = "none")
+
+print(p)
+
+```
+
+
+
+## 2- Normal Visualization by Dimplot 
+
+```{r,, fig.height=8, fig.width=10}
+
+plt <- DimPlot(Bis_anchor, reduction = "umap", label = TRUE) + ggtitle("res. 0.5")
+
+print(plt)
+```
+### a- FeaturePlot
+
+
+```{r, fig.height=10, fig.width=35}
+
+#FeaturePlot(Bis_anchor, "Gja5", min.cutoff = 0, split.by = "group", nrow = 4)
+par(mfrow = c(2, 2))
+FeaturePlot(Bis_anchor, "Gja5", min.cutoff = 0, split.by = "group")
+
+```
+
+
+
+#FeaturePlot(Bis_anchor, "Gja5", min.cutoff = 0, split.by = "group", nrow = 4)
+options(repr.plot.width = 14, repr.plot.height = 10)
+
+par(mfrow = c(2, 2))
+FeaturePlot(Bis_anchor, "Gja5", min.cutoff = 0, split.by = "group")
+
+
+
+
+## 3- Visualize both labels and clusters
+
+```{r, fig.heigth=8, fig.width=33}
+p1 <- DimPlot(Bis_anchor, reduction = "umap", split.by = "group")
+p2 <- DimPlot(Bis_anchor, reduction = "umap", label = TRUE, label.size = 6)
+plot_grid(p1, p2)
+
+
+#t <- table(Bis_anchor$integrated_snn_res.0.5, Bis_anchor$group)
+
+```
+
+
+## 4- Clustering with different resolution!
+
+```{r}
+
+Bis_anchor <- FindNeighbors(Bis_anchor, reduction = "pca", dims = 1:50)
+Bis_anchor <- FindClusters(Bis_anchor, resolution = 0.5)
+
+```
+
+
+p1 <- DimPlot(s.integrated_standard, reduction = "umap", group.by = "orig.ident")
+p2 <- DimPlot(s.integrated_standard, reduction = "umap", label = TRUE, label.size = 6)
+plot_grid(p1, p2)
+
+t <- table(s.integrated_standard$integrated_snn_res.0.5, s.integrated_standard$orig.ident)
+
+
+getwd()
+
+
+
+
+# H- PROPER GROUP NAMING
+
+## 1- Make a group name from barcode names
+
+```{r}
+
+anchored_sample$group <- sub(".*_(.*)", "\\1", colnames(anchored_sample))
+unique_groups <- unique(anchored_sample$group)
+
+#".*_(.*)": The things inside the parenthesis are captured which comes after underscore.\\1 shows first capture
+#result <- sub("(\\d+)_(\\w+)", "\\1", "123_abc")  result is 123, d+ any digits and w+ any words
+
+```
+## 2- Naming of the group column
+
+```{r}
+
+anchored_sample$group[anchored_sample$group == 1] <- "WTEC_Male"
+anchored_sample$group[anchored_sample$group == 2] <- "WTEC_Female"
+anchored_sample$group[anchored_sample$group == 3] <- "SUEC_Male"
+anchored_sample$group[anchored_sample$group == 4] <- "SUEC_Female"
+
+
+```
+
+# I- SAVE & READ COMBINED_ANCHORED DATA
+
+## 1- Save Combined_Anchored data
+
+```{r}
+
+saveRDS(anchored_sample, "C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE/anchored_combined_sample_2_19_24.Rds")
+
+```
+
+## 2- Load Combined_Anchored data
+
+```{r}
+Bis_anchor <- readRDS("C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE/anchored_combined_sample_2_19_24.Rds")
+
+```
+
+# J- *** SINGLE R UTILIZATION
+
+```{r}
+library(celldex)
+hpca.se <- HumanPrimaryCellAtlasData()
+hpca.se
+
+```
+
+
+## 1- Single R Labels
+```{r}
+
+library(SingleR)
+#pred.hesc <- SingleR(test = Bis_anchor, ref = hpca.se, labels = hpca.se$label.main)
+
+
+test_assay <- GetAssayData(Bis_anchor)
+#ref_assay <- GetAssayData(hpca.se) 
+predictions <- SingleR(test = test_assay, ref = hpca.se, labels = hpca.se$label.main)
+class(hpca.se)
+```
+
+## 2- Transfer Labels to Seurat_obj 
+
+```{r}
+
+Bis_anchor$SingR_labels <- predictions$labels 
+
+```
+
+# H- OLD SEURAT LABELS
+
+## 1- Load Old Seurat Object w/ labels 
+
+```{r}
+
+Old_Seurat1 <- readRDS("C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/rstudio-export (1)/SCT-TRIAL/SCT_from_scratch_all_Cells/SCT_Endoseurat.Rds")
+
+```
+
+## 2- ONE BY ONE how to make LABELSET from your own REFERENCE -ELHAMDULILLAH YARABBI!!!!
+
+```{r}
+#HOWTOPREPARE YOUR CURRENT_OWN SEURAT TO USE IN THE SSAY
+test_assay <- GetAssayData(Bis_anchor)
+
+#HOWTOPREPARE YOUR LABELLED SEURAT AS A REFERENCE
+se <- SummarizedExperiment(assays = list(counts = Old_Seurat1@assays[["SCT"]]@counts))
+colData(se)
+#Change counts part to logcounts if you got error or check ur sumamrizedexperiment object
+assays(se)$logcounts <- assays(se)$counts
+assays(se)$counts <- NULL  # Remove the original "counts" assay
+#ADDING COLUMN TO THE SE SUMMARIZED EXPERIMENT
+se$Cell_labels <- Old_Seurat1@meta.data$Cell_labels
+#RUN SINGLER WITH ALL ABOVE it takes some time!!! Be patient
+predictions2 <- SingleR(test = test_assay, ref = se, labels = se$Cell_labels)
+
+#TRANSFER TO YOUR CURRENT SEURAT
+
+Bis_anchor$SingR_labels <- predictions2$labels 
+
+```
+
+## 3- Reference Genome from RNA Assay?
+
+```{r}
+#HOWTOPREPARE YOUR CURRENT_OWN SEURAT TO USE IN THE SSAY
+test_assay <- GetAssayData(Bis_anchor)
+
+#HOWTOPREPARE YOUR LABELLED SEURAT AS A REFERENCE
+se <- SummarizedExperiment(assays = list(counts = Old_Seurat1@assays[["RNA"]]@layers[["counts"]]))
+colData(se)
+#Change counts part to logcounts if you got error or check ur sumamrizedexperiment object
+assays(se)$logcounts <- assays(se)$counts
+assays(se)$counts <- NULL  # Remove the original "counts" assay
+#ADDING COLUMN TO THE SE SUMMARIZED EXPERIMENT
+se$Cell_labels <- Old_Seurat1@meta.data$Cell_labels
+#RUN SINGLER WITH ALL ABOVE it takes some time!!! Be patient
+predictions2 <- SingleR(test = test_assay, ref = se, labels = se$Cell_labels)
+
+#TRANSFER TO YOUR CURRENT SEURAT
+
+Bis_anchor$SingR_labels <- predictions2$labels 
+
+```
+
+
+getwd()
+
+## 3- Saving the reference Genome
+
+```{r}
+
+saveRDS(Old_Seurat1, "C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE/Ref_Labels/old_seurat_all_sct_w_labels.Rds")
+
+saveRDS(se, "C:/Users/skacar/OneDrive - Indiana University/PULMONARY POST DOC/Single_cell_Dr_Rafikov/PROJECT_SUGEN_SEX_DIFFERENCE/Ref_Labels/ref_ready_sct_se.Rds")
+```
+
+## 4- Check available libraries in Celldex
+
+```{r}
+
+celldex::
+```
+
+
