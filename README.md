@@ -1,7 +1,6 @@
 # Sugen Project
 
 This repository contains scripts and functions for processing and analyzing single-cell RNA sequencing (scRNA-seq) data using the **Seurat** package in R. The project focuses on integrating multiple datasets and performing quality control, normalization, filtering, and visualization.
-yes
 ---
 
 ## Table of Contents
